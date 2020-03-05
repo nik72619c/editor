@@ -30,13 +30,14 @@ interface State {
 const formatExampleName = (name: string) => {
   return name
     .split(/[_-]/)
-    .map((i) => i[0].toUpperCase() + i.substring(1))
+    .map(i => i[0].toUpperCase() + i.substring(1))
     .join(' ');
 };
 
 class Header extends React.PureComponent<Props, State> {
   private examplePortal = React.createRef<HTMLDivElement>();
   private listenerAttached = false;
+  examplesModal: any;
 
   constructor(props) {
     super(props);
@@ -44,28 +45,31 @@ class Header extends React.PureComponent<Props, State> {
       open: false,
       scrollPosition: 0,
       showVega: props.mode === Mode.Vega,
-      mode: props.mode,
+      mode: props.mode
     };
   }
 
   public async componentDidMount() {
+    if (!this.listenerAttached) {
+      this.handleAppShortcuts();
+    }
     const className = ['profile-img', 'arrow-down', 'profile-container'];
-    window.addEventListener('click', (e) => {
+    window.addEventListener('click', e => {
       const key = 'className';
       if (className.includes(e.target[key])) {
         this.setState({
-          open: !this.state.open,
+          open: !this.state.open
         });
       } else {
         this.setState({
-          open: false,
+          open: false
         });
       }
     });
 
     try {
       const response = await fetch(`${BACKEND_URL}auth/github/check`, {
-        credentials: 'include',
+        credentials: 'include'
       });
       const data = await response.json();
       const {isAuthenticated, handle, name, profilePicUrl} = data;
@@ -74,11 +78,11 @@ class Header extends React.PureComponent<Props, State> {
       console.error(error);
     }
 
-    window.addEventListener('message', async (e) => {
+    window.addEventListener('message', async e => {
       if (e.data.type === 'auth') {
         try {
           const response = await fetch(`${BACKEND_URL}auth/github/check`, {
-            credentials: 'include',
+            credentials: 'include'
           });
           const data = await response.json();
           const {isAuthenticated, handle, name, profilePicUrl} = data;
@@ -120,21 +124,32 @@ class Header extends React.PureComponent<Props, State> {
     if (nextProps.mode !== prevState.mode) {
       return {
         showVega: nextProps.mode === Mode.Vega,
-        mode: nextProps.mode,
+        mode: nextProps.mode
       };
     } else return null;
   }
 
-  public handleHelpModalToggle(Toggleevent, openPortal, closePortal, isOpen) {
-    window.addEventListener('keydown', (event) => {
+  public handleAppShortcuts() {
+    window.addEventListener('keydown', event => {
       if (
         (event.keyCode === KEYCODES.SINGLE_QUOTE && event.metaKey && !event.shiftKey) || // Handle key press in Mac
         (event.keyCode === KEYCODES.SLASH && event.ctrlKey && event.shiftKey) // Handle Key press in PC
       ) {
-        if (!isOpen) {
-          openPortal();
+        const modalInstance: any = this.refs.helpModal;
+        if (!modalInstance.isOpen) {
+          modalInstance.openPortal();
         } else {
-          closePortal();
+          modalInstance.closePortal();
+        }
+      }
+      // shortcut for opening examples modal
+      if (
+        (event.keyCode === KEYCODES.E && event.metaKey && !event.shiftKey) || // Handle key press in Mac
+        (event.keyCode === KEYCODES.E && event.ctrlKey && event.shiftKey) // Handle Key press in PC
+      ) {
+        const modalInstance: any = this.examplesModal;
+        if (!modalInstance.isOpen) {
+          modalInstance.openPortal();
         }
       }
       this.listenerAttached = true;
@@ -197,7 +212,7 @@ class Header extends React.PureComponent<Props, State> {
       <div
         className="header-button settings-button"
         style={{
-          backgroundColor: this.props.settings ? 'rgba(0, 0, 0, 0.08)' : '',
+          backgroundColor: this.props.settings ? 'rgba(0, 0, 0, 0.08)' : ''
         }}
         onClick={() => this.props.setSettingsState(!this.props.settings)}
       >
@@ -221,7 +236,7 @@ class Header extends React.PureComponent<Props, State> {
     );
 
     const HelpButton = (
-      <div className="header-button help" onClick={() => this.setState((current) => ({...current}))}>
+      <div className="header-button help" onClick={() => this.setState(current => ({...current}))}>
         <HelpCircle className="header-icon" />
         {'Help'}
       </div>
@@ -296,7 +311,7 @@ class Header extends React.PureComponent<Props, State> {
     );
     const splitClass = 'split-button' + (this.props.manualParse ? '' : ' auto-run');
 
-    const vega = (closePortal) => (
+    const vega = closePortal => (
       <div className="vega">
         {Object.keys(VEGA_SPECS).map((specType, i) => {
           const specs = VEGA_SPECS[specType];
@@ -316,7 +331,7 @@ class Header extends React.PureComponent<Props, State> {
                     >
                       <div
                         style={{
-                          backgroundImage: `url(images/examples/vg/${spec.name}.vg.png)`,
+                          backgroundImage: `url(images/examples/vg/${spec.name}.vg.png)`
                         }}
                         className="img"
                       />
@@ -331,7 +346,7 @@ class Header extends React.PureComponent<Props, State> {
       </div>
     );
 
-    const vegalite = (closePortal) => (
+    const vegalite = closePortal => (
       <div className="vega-Lite">
         {Object.keys(VEGA_LITE_SPECS).map((specGroup, i) => {
           return (
@@ -355,7 +370,7 @@ class Header extends React.PureComponent<Props, State> {
                           >
                             <div
                               style={{
-                                backgroundImage: `url(images/examples/vl/${spec.name}.vl.png)`,
+                                backgroundImage: `url(images/examples/vl/${spec.name}.vl.png)`
                               }}
                               className="img"
                             />
@@ -373,7 +388,7 @@ class Header extends React.PureComponent<Props, State> {
       </div>
     );
 
-    const gist = (closePortal) => <GistModal closePortal={() => closePortal()} />;
+    const gist = closePortal => <GistModal closePortal={() => closePortal()} />;
     const exportContent = <ExportModal />;
     const shareContent = <ShareModal />;
 
@@ -394,7 +409,7 @@ class Header extends React.PureComponent<Props, State> {
               </span>,
               portal(
                 <div className="modal-background" onClick={closePortal}>
-                  <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal" onClick={e => e.stopPropagation()}>
                     <div>
                       <button className="close-button" onClick={closePortal}>
                         <X />
@@ -403,7 +418,7 @@ class Header extends React.PureComponent<Props, State> {
                     <div className="modal-body">{exportContent}</div>
                   </div>
                 </div>
-              ),
+              )
             ]}
           </PortalWithState>
 
@@ -414,7 +429,7 @@ class Header extends React.PureComponent<Props, State> {
               </span>,
               portal(
                 <div className="modal-background" onClick={closePortal}>
-                  <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal" onClick={e => e.stopPropagation()}>
                     <div>
                       <button className="close-button" onClick={closePortal}>
                         <X />
@@ -423,7 +438,7 @@ class Header extends React.PureComponent<Props, State> {
                     <div className="modal-body">{shareContent}</div>
                   </div>
                 </div>
-              ),
+              )
             ]}
           </PortalWithState>
 
@@ -434,7 +449,7 @@ class Header extends React.PureComponent<Props, State> {
               </span>,
               portal(
                 <div className="modal-background" onClick={closePortal}>
-                  <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal" onClick={e => e.stopPropagation()}>
                     <div>
                       <button className="close-button" onClick={closePortal}>
                         <X />
@@ -443,19 +458,20 @@ class Header extends React.PureComponent<Props, State> {
                     <div className="modal-body">{gist(closePortal)}</div>
                   </div>
                 </div>
-              ),
+              )
             ]}
           </PortalWithState>
 
           <PortalWithState
             closeOnEsc
             defaultOpen={this.props.showExample}
+            ref={ref => (this.examplesModal = ref)}
             onOpen={() => {
               const node = ReactDOM.findDOMNode(this.examplePortal.current);
               node.scrollTop = this.props.lastPosition;
               node.addEventListener('scroll', () => {
                 this.setState({
-                  scrollPosition: node.scrollTop,
+                  scrollPosition: node.scrollTop
                 });
               });
             }}
@@ -469,7 +485,7 @@ class Header extends React.PureComponent<Props, State> {
               </span>,
               portal(
                 <div className="modal-background" onClick={closePortal}>
-                  <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal" onClick={e => e.stopPropagation()}>
                     <div>
                       <div className="button-groups">
                         <button
@@ -502,24 +518,21 @@ class Header extends React.PureComponent<Props, State> {
                     </div>
                   </div>
                 </div>
-              ),
+              )
             ]}
           </PortalWithState>
         </section>
 
         <section className="right-section">
-          <PortalWithState closeOnEsc>
+          <PortalWithState closeOnEsc ref="helpModal">
             {({openPortal, closePortal, isOpen, portal}) => {
-              if (!this.listenerAttached) {
-                this.handleHelpModalToggle(event, openPortal, closePortal, isOpen);
-              }
               return [
                 <span key="0" onClick={openPortal}>
                   {HelpButton}
                 </span>,
                 portal(
                   <div className="modal-background" onClick={closePortal}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
                       <div>
                         <button className="close-button" onClick={closePortal}>
                           <X />
@@ -530,7 +543,7 @@ class Header extends React.PureComponent<Props, State> {
                       </div>
                     </div>
                   </div>
-                ),
+                )
               ];
             }}
           </PortalWithState>
